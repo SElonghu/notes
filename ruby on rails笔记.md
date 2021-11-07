@@ -113,10 +113,153 @@ index.html.erb
 
 ### 3.6.helper方法
 
-1. render
+#### 3.6.1.render
+
+**作用**
 
 - 生成HTTP response
 - 渲染和解释子视图（sub-view）
+
+**controller里的render**
+
+作用：渲染action对应的view，组件当前request的response
+
+```ruby
+#常见用法，渲染一个action的view
+def index
+    #...
+end
+def search
+    @users = User.page(params[:page] || 1).per_page(params[:per_page] || 5).order("id desc").where(["username like ?", "%#{params[:username]}%"])
+    render action: :index
+end
+
+#其它用法
+render text: 'ok' #返回text类型数据
+render json: @users #返回json类型数据
+render xml: @users #返回xml类型数据
+render file: 'app/views/users/index' #用相对路径返回一个视图index.html.erb
+render partial: 'app/views/users/search' #用相对路径返回一个模板视图_search.html.erb
+```
+
+return: 由于**一个action只能有一个render或redirect_to方法**，所以执行完一次render方法后可以通过return方法不继续执行后面的render方法，如：
+
+```ruby
+def index
+    ...
+    if @users
+        render text: 'ok'
+        return #没有这个return方法的话，会接着执行下面的render方法，就会报错
+    end
+    render json: @users
+end
+```
+
+**view里的render**
+
+作用：渲染子视图sub-view
+
+```ruby
+#一般用法
+# app/views/shared/_menu.html.erb
+
+# app/views/users/index.html.erb在这个view里渲染模板_menu.html.erb
+<#= render "shared/menu" %>  相对路径
+<h1>Productions</h1>
+...
+
+#参数
+<%= render "shared/menu" %> #缩写方式指定需要渲染的模板视图
+<%= render partial: "shared/menu" %> #hash方式指定需要渲染的模板视图
+<%= render "shared/menu", locals: { val_1: 'value_1' } %> #传递变量进menu模板视图
+
+#遍历输出
+<% @users.each do |user| %>
+   <%= render partial: "one_user", locals: {user: user} %>
+<% end %>
+# or
+<%= render "one_user", collection: @users, as: :user %> # 这种方式和上面的遍历输出一样，将user变量传递进one_user模板视图中
+```
+
+**子视图能够访问当前视图或者aciton的所有实例变量**
+
+#### 3.6.2.layout
+
+作用：定义view的父视图
+
+```ruby
+# app/views/layouts/application.html.erb
+<body>
+    ...
+    <%= yield %>
+	...
+</body>
+```
+
+```ruby
+# app/controllers/users_controller.rb
+class UsersController < ApplicationController
+    layout 'application'  #layout指定了users视图的父模板为application，默认就是application所以可以不显示指定
+    def index
+        # ...
+    end
+end
+```
+
+其它用法：
+
+```ruby
+#可单独指定action对应视图使用的模板
+class Admin::UsersController < ApplicationController
+    layout 'admin' #定义users控制器内的所有action对应的视图使用admin模板
+    def index
+        #...
+    end
+    def new
+        render layout: 'application'  #new方法的视图使用application作为模板
+    end
+    def edit
+        render layout: false  #edit方法的视图不使用任何模板
+    end
+end
+```
+
+```ruby
+#layout运行时逻辑(每个action动态采用模板)
+class Admin::UsersController < ApplicationController
+    layout :generate_layout #使用generate_layout方法指定的模板，这里的symbol表示方法名称
+    def index
+        #...
+        @current_user = :normal #使用application父模板
+    end
+    def new
+        @current_user = :admin #使用admin父模板
+    end
+    def edit
+        render layout: false  #edit方法的视图不使用任何模板
+    end
+    
+    private
+    def generate_layout
+        @current_user == :normal ? 'application' : 'admin'
+    end
+end
+```
+
+```ruby
+#layout还可以继承
+class Admin::BaseController < ApplicationController
+    layout 'admin'
+end
+class Admin::BlogsController < Admin::BaseController
+    # layout依然是admin
+end
+class Admin::UsersController < Admin::BlogsController
+    layout 'user' #指定父模板为user
+end
+```
+
+
 
 ## 4.控制器(controller)
 
