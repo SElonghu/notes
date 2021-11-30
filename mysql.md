@@ -65,11 +65,22 @@ mysql -u root -p或mysql -u root -pKylin*2020
 ## 2.创建数据库
 
 ```mysql
-#创建数据库
-CREATE DATABASE lh_db01;
+#创建数据库(默认编码方式为utf8，默认校验规则为utf8_general_ci不区分大小写)
+CREATE DATABASE `lh_db01`; ``引起来规避关键字引起的错误
 #创建一个使用utf8字符集，并带校对规则(区分大小写)的lh_db02数据库
-CREATE DATABASE lh_db02 CHARACTER SET utf8 COLLATE utf8_bin
+CREATE DATABASE lh_db02 CHARACTER SET utf8 COLLATE utf8_bin;
 #删除数据库
 DROP DATABASE lh_db01;
+```
+
+## 3.查询数据库
+
+```mysql
+#显示数据库语句
+SHOW DATABASES
+#显示数据库创建语句
+SHOW CREATE DATABASE db_name
+#数据库删除语句
+DROP DATABASE [IF EXISTS] db_name
 ```
 
