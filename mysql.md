@@ -85,3 +85,58 @@ DROP DATABASE [IF EXISTS] db_name
 ```
 
 ## 4.数据库备份
+
+### 4.1备份恢复整个数据库
+
+```shell
+#备份数据库（注意：在Dos中执行）
+mysqldump -u 用户名 -p -B 数据库1 数据库2 数据库n > D:\\文件名.sql
+```
+
+```mysql
+#恢复数据库（注意：进入Mysql命令行再执行）
+source 文件名.sql;
+#恢复数据库也可以通过把文件名.sql里的sql语句直接执行的方式
+```
+
+### 4.2备份恢复表
+
+```shell
+#备份数据库表（注意：在Dos中执行）
+mysqldump -u 用户名 -p 数据库1 表1 表2 表n > D:\\文件名.sql
+```
+
+```mysql
+#恢复数据库表（注意：进入具体数据库再执行）
+use db1; #进入数据库db1
+source 文件名.sql
+```
+
+
+
+## 5.创建表
+
+```mysql
+use db1;   #先切换到一个数据库
+CREATE TABLE table_name
+(
+    filed1	datatype,
+    filed2	datatype,
+    filed3	datatype
+)character set 字符集 collate 校对规则 engine 存储引擎;
+#character set: 如不指定则为所在数据库字符集
+#collate：如不指定则为所在数据库校对规则
+#engine: 引擎（详情见后面章节）
+```
+
+```mysql
+#例子
+CREATE TABLE `user`
+(
+    id	int,
+    `name`	varchar(255),
+    `password`	varchar(255),
+    `birthday` date
+)character set utf8 collate utf8_bin engine innodb;
+```
+
