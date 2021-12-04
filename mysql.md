@@ -140,3 +140,60 @@ CREATE TABLE `user`
 )character set utf8 collate utf8_bin engine innodb;
 ```
 
+## 6.列类型
+
+### 6.1数值类型
+
+#### 6.1.1整型
+
+1、tinyint[1个字节]
+
+2、smallint[2个字节]
+
+3、mediumint[3个字节]
+
+4、**int[4个字节]**
+
+5、bigint[8个字节]
+
+```mysql
+#如何定义一个无符号的整数
+create table t1 (id tinyint);  #默认是有符号的
+create table t2 (id tinyint unsigned); #无符号的
+```
+
+#### 6.1.2小数类型
+
+1、float [单精度4个字节]
+
+2、**double [双精度8个字节]**
+
+3、**decimal[M,D] [大小不确定，M指定长度，D指定小数点后位数]**
+
+### 6.2文本类型
+
+1、**char 0-255**
+
+2、**varchar 0-65535 [0~2^16-1]**
+
+3、**text [0~2^16-1]**
+
+4、longtext [0~2^32-1]
+
+### 6.3二进制类型
+
+1、blob [0~2^16-1]
+
+2、longblob [0~2^32-1]
+
+### 6.4日期类型
+
+1、date [日期：年月日]
+
+2、time [时间：时分秒]
+
+3、**datetime [年月日 时分秒 YYYY-MM-DD HH:MM:ss]**
+
+4、**timestamp [时间戳]**
+
+5、year [年]
