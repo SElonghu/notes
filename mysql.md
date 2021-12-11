@@ -190,7 +190,7 @@ create table t1 (num bit(8));  //8代表位数
 insert into t1 values(3);
 ```
 
-### 7.2文本类型
+### 6.2文本类型
 
 size填字符数、
 
@@ -206,9 +206,9 @@ size填字符数、
 
 //varchar(4)插入'aa'，会占用(实际数据大小)+(1~3)字节
 
-3、**text [0~2^16-1]**
+3、**text [0~2^16-1]**字节
 
-4、longtext [0~2^32-1]
+4、longtext [0~2^32-1]字节
 
 
 
@@ -224,13 +224,13 @@ size填字符数、
 
 5.char、varchar中1字符=1汉字=1字母=多字节；text中1字母（数字）=1字节，1汉字=多字节
 
-### 7.3二进制类型
+### 6.3二进制类型
 
 1、blob [0~2^16-1]
 
 2、longblob [0~2^32-1]
 
-### 7.4日期类型
+### 6.4日期类型
 
 1、date [日期：年月日]
 
@@ -241,3 +241,81 @@ size填字符数、
 4、**timestamp [时间戳]**
 
 5、year [年]
+
+```mysql
+create table t4 (
+	birthday date,    -- 生日
+    job_time datetime,  -- 记录年月日 时分秒
+    login_time timestamp -- 时间戳
+    	not null default current_timestamp  -- login_time不为空，默认位当前时间
+    	on update current_timestamp); -- 更新这条数据时同时更新时间戳为当前时间
+#插入一条数据，时间戳login_time会变成当前时间
+insert into t4 (birthday, job_time) values('2022-11-11', '2022-11-11 10:10:10');
+```
+
+## 7.表操作
+
+### 7.1添加列
+
+```mysql
+ALTER TABLE tablename
+ADD	(column datatype [DEFAULT expr]   
+);
+#在emp表中的resume字段后面添加一个字段image，不为空，默认为''
+ALTER TABLE emp
+	ADD image VARCHAR(32) not null default '' after resume;
+```
+
+### 7.2修改列
+
+```mysql
+#修改emp表中的字段job为varchar(60)
+ALTER TABLE emp
+	MODIFY job VARCHAR(60) 	NOT NULL DEFAULT '';
+```
+
+### 7.3删除列
+
+```mysql
+#删除emp表中的sex字段
+ALTER TABLE emp
+	DROP sex;
+```
+
+### 7.4修改表名
+
+```mysql
+#修改表名emp为employee
+RENAME TABLE emp TO employee;
+```
+
+### 7.5修改字符集
+
+```mysql
+#修改表employee的字符集为utf8
+ALTER TABLE employee CHARACTER SET utf8;
+```
+
+### 7.6修改列名
+
+```mysql
+#修改表employee的name字段名改成user_name
+ALTER TABLE employee 
+	CHANGE `name` `user_name` VARCHAR(32) NOT NULL DEFAULT '';
+```
+
+## 8.CRUD语句
+
+### 8.1INSERT语句
+
+```MYSQL
+INSERT INTO `goods` (id, goods_name, price)
+	values(10, '华为手机', 2000);
+```
+
+**注意事项**：
+
+1. 插入的数据应与字段的数据类型相同，如：把'abc'添加到int类型会报错。但是'30'添加到int类型会正常转换成30。
+2. 数据的长度应在列的规定范围内，例如：不能将一个长度为80的字符串加入到长度为40的列中。
+3. 在values中列出的数据位置必须与被加入的列的排列位置相对应。
+
