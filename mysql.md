@@ -316,6 +316,88 @@ INSERT INTO `goods` (id, goods_name, price)
 **注意事项**：
 
 1. 插入的数据应与字段的数据类型相同，如：把'abc'添加到int类型会报错。但是'30'添加到int类型会正常转换成30。
-2. 数据的长度应在列的规定范围内，例如：不能将一个长度为80的字符串加入到长度为40的列中。
-3. 在values中列出的数据位置必须与被加入的列的排列位置相对应。
 
+2. 数据的长度应在列的规定范围内，例如：不能将一个长度为80的字符串加入到长度为40的列中。
+
+3. 在values中列出的数据位置一般与被加入的列的排列位置相对应。
+
+4. 字符和日期类型数据应包含在单引号中。
+
+5. 列可以插入空值（前提是该字段允许为空），insert into `goods` (id, goods_name, price) values(40, 'vivo手机', null);
+
+6. insert into tab_name (列名...) values (), (), () 形式添加多条记录。
+
+   ```mysql
+   insert into `goods` (id, goods_name, price)
+   	values(50, '三星手机', 2300), (60, '海尔手机', 1800);
+   ```
+
+7. 如果是给表中所有字段添加数据，可以不写前面的字段名称。
+
+   ```mysql
+   insert into `goods`
+   	values(40, 'vivo手机', null);
+   ```
+
+8. 默认值的使用，当不给某个字段值时，如果有默认值就会添加，否则报错。
+
+   ```mysql
+   insert into `goods` (id, goods_name)
+   	values(80, '格力手机');
+   #此时price字段会添加默认值
+   ```
+
+### 8.2update语句
+
+UPDATE用来更新原有的字段；SET子句用来指示需要修改哪些列和修改的值；WHERE子句用来指定需要修改的行（记录），如果没有则更新所有行；
+
+```mysql
+UPDATE table_name
+	SET col_name1=expr1 [, col_name2=expr2 ...]
+	[WHERE where_definition]
+#例如，将employee表中小妖怪的薪水改成3000，若不加where则会将所有人的salary都改成3000。
+UPDATE employee
+	SET salary = 3000
+	WHERE user_name = '小妖怪';
+#将老妖怪薪水原有基础上增加1000元
+UPDATE employee
+	SET salary = salary + 1000
+	WHERE user_name = '老妖怪';
+```
+
+### 8.3delete语句
+
+```mysql
+DELETE FROM table_name
+	[WHERE where_definition];
+#例如，删除表employee中名称为‘老妖怪’的记录，如果不加where则会删除表的所有记录。
+delete from employee
+	where user_name = '老妖怪';
+```
+
+细节：
+
+1.如果不加where则会删除表的所有记录。
+
+2.delete语句只能删除整条记录，不能删除某一列。
+
+3.delete语句仅删除记录，不删除表本身。如要删除表本身，使用drop table 表名。
+
+### 8.4select语句
+
+```mysql
+SELECT [DISTINCT] *|{column1,column2,column3..}
+	FROM table_name;
+```
+
+注意：
+
+1.select指定查询哪些列的数据。
+
+2.column指定列名。
+
+3.*号代表查询所有列。
+
+4.from指定查询哪张表。
+
+5.DISTINCT可选，是否去掉重复数据。
