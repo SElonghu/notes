@@ -385,6 +385,8 @@ delete from employee
 
 ### 8.4select语句
 
+#### 8.4.1select基本写法
+
 ```mysql
 SELECT [DISTINCT] *|{column1,column2,column3..}
 	FROM table_name;
@@ -401,3 +403,41 @@ SELECT [DISTINCT] *|{column1,column2,column3..}
 4.from指定查询哪张表。
 
 5.DISTINCT可选，是否去掉重复数据。
+
+#### 8.4.2where及运算符
+
+```mysql
+#使用表达式对查询的列进行运算
+SELECT *|{column1 | expression, column2 | expression, ..}
+	FROM tablename;
+#在select语句中可以使用as语句
+SELECT columname as 别名 from 表名;
+#例子
+select `name`,(chinese+english+math) as '总分' from student;
+```
+
+|            | > < <= >= = <> !=       | 比较运算符          |
+| ---------- | ----------------------- | ------------------- |
+|            | BETWEEN ...AND...       | 区间运算符          |
+| 比较运算符 | IN(set)                 | 在列表set中的值     |
+|            | LIKE '张%'、NOT LIKE '' | 模糊查询，%是通配符 |
+|            | IS NULL                 | 判断是否为空        |
+|            | and                     |                     |
+| 逻辑运算符 | or                      |                     |
+|            | not                     |                     |
+
+#### 8.4.3order by子句
+
+```mysql
+#使用order by子句排序查询
+SELECT column1, column2, column3..
+	FROM table
+	WHERE ...
+	order by column asc|desc;
+#例如
+select * from student
+	where `name` like '韩%'
+	order by math asc;
+```
+
+#### 8.4.4统计函数count
