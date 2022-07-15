@@ -606,18 +606,166 @@ a[1..2]     #取值
 
 1.ruby方法的返回值是什么？
 
-ruby中少用return，尤其是方法末尾的return
+ruby中少用return，尤其是方法末尾的return，因为ruby方法最后一句代码是默认返回。
+
+```ruby
+#避免使用return代码举例
+def is_target?(x)     #原方法判断语句有多个return
+  if cond1
+    if cond2
+      return foo
+    else
+      return true
+    end
+  else
+    return false
+  end
+end
+
+def is_target?(x)     #现去掉return
+  if cond1
+    if cond2
+      foo?
+    else
+      true
+    end
+  else
+    false
+  end
+end
+
+def is_target?(x)    #继续简化
+  cond1 && (!cond2 || foo?)
+end
+```
+
+如果不得已需要用return，那么尽量在代码一开始就写出所有return。
+
+```ruby
+def foo(x)
+  return if x.blank? || x.bar? || x.baz?
+  wut(x)
+  wat(x)
+end
+```
 
 2.ruby中的self是什么？
 
+```ruby
+str = 'Hello World'  #定义一个string对象str
+def str.foo      #定义一个str对象的单例方法foo
+  puts self      #self就是指str对象本身
+end
+```
+
 3.什么是方法别名？
+
+可以给一个方法名起一个别名，使用别名也可以调用该方法。
+
+```ruby
+def foo          #首先定义一个方法foo
+  puts 'foo'
+end
+alias :bar :foo  #使用关键字alias给方法foo起一个别名bar
+bar              #使用别名bar调用方法foo
+foo
+=>nil
+```
+
+使用别名可以使一个方法在不同场景下调用时更符合语义，例如：include?和member?，include?表示对象中是否包含某元素，member?表示对象中是否有某成员。
 
 4.什么是运算符方法？
 
+在c++中一个bracket运算符表示的只是运算符而不是方法，例如：
+
+```c++
+int arr[3];    #定义一个数组，其中[3]仅表示位置运算符arr+sizeof(int)*3
+```
+
+在ruby中bracket运算符表示一个方法，例如：
+
+```ruby
+arr = [1,2,3]
+arr[2]     #可以使用下标[2]取值
+=> 3
+arr.[](2)  #使用[]方法也可以取arr中的值
+=> 3
+因为ruby是一门完全面向对象语言，一切皆是对象，ruby不会把对象的内部结构暴露出来，所以会给array对象定义[]方法用来取值，而起名叫[]方法是为了能像其他语言一样的方式取值。
+#ruby中还有其他符号运算符作为方法
+arr + [4]  #+运算符
+=> [1,2,3,4]
+def arr.+(num)  #重写+运算符方法，使arr可以和数字相加(运算符重写)
+  self.dup << num  #self.dup表示self的一个备份，这样不会改变self本身
+end
+arr + 6         #arr可以和数字相加
+=> [1,2,3,6]
+```
+
 5.参数的默认值？
 
+ruby中没有函数重载，所以可以有参数默认值
+
+```ruby
+# c++ / java
+foo(a, b)
+foo(a, b, c)   #不同的参数需要定义不同方法实现函数重载
+#ruby
+foo(a, b, c = 3)   #当只传入a，b时，c会传入默认值3
+```
+
 6.可以给ruby方法传入任意多参数
+
+```ruby
+def foo(a, *b, c)     #在参数前加*表示可以传入任意多参数
+
+#*b会把传入的多个参数转换成一个array
+def foo(a, *b, c)   #定义方法foo，参数里有*b
+  p a
+  p b
+  p c
+end
+foo(1,2,3,4,5)    #调用方法foo
+1
+[2,3,4]           #2,3,4转换为了array
+5
+=> 5
+```
+
+当参数太多分不清参数代表啥的时候，可以使用hash作为参数传入
+
+```ruby
+foo(a, b, c, d, e, f)  =>  foo(hash)
+def bar(h)      #定义一个方法bar，使用hash作为参数传入
+  h.each do |key, value|
+  	p key, value  #p(key, value)省略括号，大部分方法可以省略括号，使语句读起来更像英语
+  end
+end
+=> :bar
+bar(a:3, b:4)   #调用bar，使用{a:3, b:4}作为参数时可以省略{}
+:a
+3
+:b
+4
+=> {:a=>3, :b=>4}
+```
 
 ### 方法的调用
 
 1.方法调用时什么时候可以省略括号？
+
+大部分方法可以省略括号，使语句读起来更像英语，除非去掉括号会引起歧义
+
+```ruby
+p(key, value) =>  p key, value    #可以去掉括号
+```
+
+## 7.闭包（block, proc, lambda）
+
+### 迭代器和块(iterator、block)
+
+```ruby
+[1,2,3].each do |elem|  #遍历array元素，其中each就是iterator
+  p elem                #do...end就是block，do...end可以用{}代替
+end
+```
+
