@@ -769,3 +769,116 @@ p(key, value) =>  p key, value    #可以去掉括号
 end
 ```
 
+**block的几种调用方式：**
+
+一般block中有多行代码时使用do...end形式：
+
+```ruby
+arr.each do |elem|
+  foo(elem)
+  bar(elem)
+  baz(elem)
+end
+```
+
+当block中只写一行代码时一般使用{}形式：
+
+```ruby
+arr.each { |e| p e }
+```
+
+除了上述两种block调用方式，还可以使用yield调用：
+
+```ruby
+def foo
+  a = 2
+  yield a     #yield表示把a数出来给block使用
+end
+
+foo { |a| puts a }
+```
+
+使用&符号和call方法调用block（将block作为方法的参数传入）：
+
+```ruby
+def foo(&block)
+  a = 2
+  block.call(a)
+end
+
+foo { |a| puts a}
+```
+
+运行.rb文件：
+
+```ruby
+$ ruby block.rb
+```
+
+irb中运行.rb文件：
+
+```ruby
+load 'block.rb'   #load可以直接运行rb程序，并且将方法load到内存
+2
+2
+=> true
+foo { |a| p a + 3}  #因为load后将foo方法load到了内存，所以可以在irb中直接调用该方法
+5
+=>5
+```
+
+### block的变量scope
+
+block使用的变量可以从当前scope中取到
+
+```ruby
+foo { |b| p b; p a }
+2
+NameError: undefined local variable or method 'a' for main:Object...
+#报错是因为变量a在block所在的scope中没有定义
+a = 4   #定义变量a
+foo { |b| p b; p a }  #在block所在的scope中定义变量a后不再报错
+2
+4
+```
+
+### block的flow control
+
+block中的return、break、next语句并不是对于block的流程控制，而是对于block所在的方法
+
+因为block本身不是方法，而是ruby的一种将代码包围起来的语法结构
+
+```ruby
+#例如在irb中调用block
+foo { |a| p a; return }
+2
+LocalJumpError: unexpected return ...   #因为没有一个方法包含这个block，所以return报错
+#以上相当于在irb中直接使用return语句
+return
+LocalJumpError: unexpected return ...
+```
+
+irb中正确在block中使用return的例子：
+
+```ruby
+def bar     #定义方法bar
+  x = 3
+  yield x
+  p 'end of bar'
+end
+def foo     #定义方法foo
+  p 'start of foo'
+  bar { |x| return if x > 0 }     #方法foo中使用bar的block，block中使用return语句
+  p 'end of foo'
+end
+foo      #调用方法foo
+=> "start of foo"   #block直接return给foo
+```
+
+### Proc
+
+Proc是类，而proc和lambda都是Proc的对象。
+
+**proc**
+
+当我们想使用对象来表示block时，可以使用proc
