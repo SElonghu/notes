@@ -882,3 +882,224 @@ Proc是类，而proc和lambda都是Proc的对象。
 **proc**
 
 当我们想使用对象来表示block时，可以使用proc
+
+```ruby
+def foo(&block)   #这里&block整体是一个block参数，而这里的block是一个proc，&符号将proc转换成了block
+  a = 2
+  block.call(a)
+end
+foo { |a| puts a}
+
+arr = %w(a b c)           #定义一个字符串数组arr
+arr.map(&:capitalize)     #方法capitalize转换成proc，再通过&符号转换成block
+=> ["A", "B", "C"]
+arr.map {|x| x.capitalize}  #相当于在map方法后接block
+```
+
+proc定义
+
+```ruby
+proc = Proc.new { |x| x*2 }
+proc.class
+=> Proc
+```
+
+**lambda**
+
+lambda也可以表示一个block
+
+```ruby
+lambda =lambda { |x| x*2 }    #创建一个lambda
+lambda.class
+=> Proc
+```
+
+### proc和lambda的区别
+
+一个中心思想：
+
+虽然proc和lambda都可以表示block，但是proc的行为更像block，lambda的行为更像方法。
+
+两个区别：
+
+1.proc和lambda调用时可传入的参数数量有区别
+
+```ruby
+p = Proc.new { |x, y| p x, y}   #proc更像block可以接受任意数量参数
+p.call(1)   #调用proc时只传一个参数，其它参数会传入默认值
+1
+nil
+=> [1, nil]
+p.call(1, 2)
+1
+2
+=> [1, 2]
+p.call(1,2,3)   #传入大于定义的参数时，多余的参数自动丢弃
+1
+2
+=> [1, 2]
+    
+l = lambda {|x, y| p x, y}   #lambda更像方法，只能接受等于定义参数数量的方法
+l.call(1)        #传入少于定义的参数时报错
+l.call(1,2)      #传入等于定义的参数时正常调用
+1
+2
+=> [1, 2]
+l.call(1,2,3)    #传入大于定义的参数时报错
+```
+
+2.proc和lambda的control flow有区别
+
+```ruby
+p = Proc.new {|x| return if x>0}   #定义一个proc，里面有return
+p.call(1)                          #调用时报错，因为proc像一个block，但是并没有方法包含，所以return报错
+=> LocalJumpError: unexpected return
+
+l = lambda {|x| return if x>0}   #定义一个lambda，里面有return
+l.call(1)                        #可正常调用，因为lambda更像一个方法，所以可以return
+=>nil
+```
+
+## 8.面向对象
+
+类：就像一个容器，容器里定义了很多方法
+
+对象：对象就想一个接收者，可以响应这些方法
+
+### 类定义
+
+定义一个空类：
+
+```ruby
+class Point    #类名使用驼峰命名，且是一个constant
+end
+
+p = Point.new    #创建一个对象p
+p.class          #查看对象p的类
+=> Point
+p.methods(false)  #查看对象p的所有方法，false表示不查找继承自祖先的方法
+=> []      #现在还没有方法
+Point.ancestors    #查看Point类的祖先
+=> [Point, Object, Kernel, BasicObject]
+
+class、methods、ancestors等类或对象的方法统称为内省（introspection）
+```
+
+定义构造函数：
+
+```ruby
+class Point
+  def initialize(x,y)      #定义构造函数initialize，创建对象时需要传入参数x,y
+    # @x instance variable
+    # @@x class variable
+    # $x global variable
+    # x local variable
+    @x, @y = x, y          #定义实例变量x,y接收参数
+  end
+end
+p = Point.new(2,3)
+
+class Point                #给构造函数的参数设置默认值
+  def initialize(x=0,y=0)      #定义构造函数initialize，创建对象时可以不传入参数x,y
+    @x, @y = x, y          #定义实例变量x,y接收参数
+  end
+end
+p = Point.new
+```
+
+取对象里的变量：
+
+```ruby
+#ruby对象对变量封装性好，只能通过定义getter、setter方法读写变量
+class Point       
+  attr_accessor :x    #ruby提供该helper方法自动创建了getter、setter方法（存取器）
+  attr_reader :y      #ruby提供该helper方法自动创建了getter（读取器）
+  def initialize(x=0,y=0)      
+    @x, @y = x, y          #定义实例变量x,y接收参数
+  end
+end
+p = Point.new(2)
+p.x
+=> 2
+p.y
+=> 0
+```
+
+定义实例方法：
+
+```ruby
+class Point       
+  attr_accessor :x    
+  attr_reader :y      
+  def initialize(x=0,y=0)      
+    @x, @y = x, y
+  end
+  
+  def first_quadrant?   #判断x、y坐标是否为第一象限
+    x > 0 && y > 0   #其实是self.x，self.y，读变量可以省略self或@
+                     #写变量则不能省略self或@，需写出self.x或@x，否则会混淆x和@x
+  end
+    
+  def +(p2)       #定义一个符号方法，两对象相加
+    Point.new(x+p2.x, y+p2.y)
+  end
+end
+p = Point.new(2,3)
+p.first_quadrant?    #调用类方法
+=> true
+```
+
+定义类方法：
+
+```ruby
+class Point       
+  attr_accessor :x    
+  attr_reader :y      
+  def initialize(x=0,y=0)      
+    @x, @y = x, y
+  end
+  
+  def first_quadrant?   
+    x > 0 && y > 0                 #实例方法中的self指instance本身
+  end
+    
+  def +(p2) 
+    Point.new(x+p2.x, y+p2.y)
+  end
+                     
+  def self.second_quadrant?(x, y)  #1.这里的self指class本身，定义一个class方法
+    x < 0 && y > 0
+                                   #class方法中的self指class本身
+  end
+    
+  class << self    #2.使用class << self可以批量定义类方法，这样方法名不需要写self
+    def foo
+    end
+    def bar
+    end
+  end
+    
+end
+
+Point.second_quadrant?(-2, 3)      #class方法只能由class调用，不能由实例调用
+=> true
+```
+
+定义变量：
+
+```ruby
+#定义在实例方法外的变量是类变量，不是实例变量，通过类来访问
+class Point       
+  attr_accessor :x    
+  attr_reader :y    
+  ORIGIN = 2      #定义一个常量，常量并没有封装在类中，直接使用Point::ORIGIN可以取值
+  @@origin = 0    #定义一个class variable
+  def self.get_origin   #定义取类变量@@origin的类方法，只能定义类方法取类变量，不能用getter
+    @@origin
+  end
+  def initialize(x=0,y=0)      
+    @x, @y = x, y
+  end
+end
+```
+
