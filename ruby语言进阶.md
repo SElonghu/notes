@@ -1103,3 +1103,145 @@ class Point
 end
 ```
 
+### 继承
+
+ruby中的子类可以继承所有base class的方法，不管方法是不是public、protected、private。其他编程语言子类一般不能继承private方法。
+
+```ruby
+class Point3d < Point
+  def initialize(x=0,y=0,z=0)
+    super(x,y)    #在子类中使用super可以将指定参数传给父类该方法
+                  #super后不指定参数，则将所有参数传给父类该方法
+    @z = z
+  end
+end
+p = Point3d.new
+p.first_quadrant?   #调用继承自父类的方法
+=> false
+```
+
+方法可见
+
+|           | 可见（visibility）      | 继承(inheritance) | 可以被class内的对象调用(call on obj) |
+| --------- | ----------------------- | ----------------- | ------------------------------------ |
+| public    | class内部和外部都可调用 | yes               | yes                                  |
+| protected | within                  | yes               | yes                                  |
+| private   | within                  | yes               | no                                   |
+
+```ruby
+class Point       
+  attr_accessor :x    
+  attr_reader :y      
+  def initialize(x=0,y=0)      
+    @x, @y = x, y
+  end
+  
+  private            #定义private方法1，private后定义的方法都是private
+  def first_quadrant?   
+    x > 0 && y > 0      
+  end
+  private :first_quandrant?    #定义private方法2，指定方法名为private
+  
+  def foo
+    self.first_quadrant?   #使用self调用private方法，是不能成功执行的，去掉self则可以
+  end
+end
+
+p = Point.new
+p.first_quadrant?    #使用self调用private方法，是不能成功执行的
+NoMethodError: private method 'first_quadrant?'
+```
+
+对象的常见内省方法：
+
+```ruby
+#1.is_a?和instance_of?
+Point3d < Point   #Point3d继承自Point
+p = Point3d.new
+p.is_a? Point
+=> true
+p.is_a? Point3d
+=> true
+p.instance_of? Point   #只有p是Point3d的实例化对象才为真
+=> false
+p.instance_of? Point3d
+=> true
+
+if obj.instance_of? foo   #instance_of的常用场景
+  do_something
+else
+  do_something_else
+end
+```
+
+类的常用内省方法：
+
+```ruby
+#superclass和ancestors
+Point3d.superclass  #该类的父类
+=> Point
+Point3d.ancestors   #该类的祖先们
+=> [Point3d, Point, Object, Kernel, BasicObject]
+```
+
+### 模块(module)
+
+模块就是一个方法库(library)，模块不能像class一样实例化，只能通过import的方式来调用模块里的方法。
+
+1.模块的定义和类方法、实例方法定义
+
+```ruby
+module Helper   #定义一个module
+  def self.distance(obj1, obj2)  #定义一个class method，只能通过Helper调用
+    Math.sqrt((obj1.x - obj2.x) ** 2 + (obj1.y - obj2.y) ** 2)
+  end
+    
+  def shift_right(x,y,z=0)       #定义一个instance method，可以include或extend导入到class中
+      return x+3, y, z
+  end
+end
+```
+
+2.模块include和extend
+
+```ruby
+#include
+class Point
+  include Helper   #使用include将Helper模块导入，就可以将模块中的instance method变成类中的instance method，而模块中的类方法则无法在该类中使用
+end
+p = Point.new
+p.shift_right(1,2,3)
+p.distance(p1,p2)   #报错，因为distance方法是模块中的类方法
+
+#extend
+class Point
+  extend Helper   #使用extend将Helper模块导入，就可以将模块中的实例方法变成类中的类方法
+end
+Point.shift_right(1,2,3)
+```
+
+3.使用hook将模块中的类方法、实例方法同时导入类中
+
+```ruby
+module Helper
+  def shift_right(x,y,z=0)
+      return x+3, y, z
+  end
+  
+  module ClassMethods  #首先在Helper模块中定义一个ClassMethods模块，用来定义需要变成其他类的类方法的实例方法
+    def distance(obj1, obj2)
+      Math.sqrt((obj1.x - obj2.x) ** 2 + (obj1.y - obj2.y) ** 2)
+  end
+      
+  def self.include(klass)  #再定义一个hook，当include Helper到一个类klass中时，自动extend ClassMethods模块到Klass类中
+    klass.extend ClassMethods
+  end
+end
+
+class Point
+  include Helper 
+end
+
+Point.distance(p1,p2)   #Helper模块中的distance方法已经变成为Point类的类方法
+```
+
