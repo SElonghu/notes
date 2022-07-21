@@ -1245,3 +1245,46 @@ end
 Point.distance(p1,p2)   #Helper模块中的distance方法已经变成为Point类的类方法
 ```
 
+常用内省方法：
+
+1.类中include了哪些module?
+
+```ruby
+Point.included_modules
+=> [Helper, Kernel]
+```
+
+2.类中包含指定module吗？
+
+```ruby
+Point.include?(Helper)
+=> ture
+```
+
+3.类有哪些祖先？
+
+```ruby
+Pint.ancestors
+=> [Point, Helper, Object, Kernel, BasicObject]    #包括父类和模块
+```
+
+4.类有哪些父类？
+
+```ruby
+Point.ancestors - Point.included_modules
+=> [Point, Object, BasicObject]
+```
+
+5.类和模块的关系
+
+```ruby
+Point.class
+=> Class
+Helper.class
+=> Module
+Point.class.superclass   #Class的父类是Module
+=> Module
+Point.is_a? Module       #所以类都属于Module
+=> true
+```
+
