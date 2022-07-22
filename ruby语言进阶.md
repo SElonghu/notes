@@ -1288,3 +1288,20 @@ Point.is_a? Module       #所以类都属于Module
 => true
 ```
 
+### 单例化和方法查找
+
+每个对象都有一个单例类(singleton_class)，一个对象的单例方法其实是该对象的单例类的instance method。
+
+```ruby
+str = 'hello world'   #定义一个String类的实例
+def str.foo
+  puts 'foo'
+end
+str.singleton_class    #输出str实例的单例类
+=> #<Class:#<String:0x007fc939832e08>>
+str.singleton_class.class   #输出str实例的单例类的类
+=> Class                    #这说明单例类其实是Class的实例
+str.singleton_class.instance_methods(false)   #查看str对象的单例方法(也就是单例类的实例方法)
+=> [:foo]
+```
+
