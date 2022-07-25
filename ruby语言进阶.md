@@ -1363,3 +1363,139 @@ ensure                      #ensure表示无论报不报错都处理
 end
 ```
 
+```ruby
+#rescue的执行规则，如果当前block中的raise类型没有对应的rescue处理，就会去找上一个block的rescue
+def boom
+  raise 'boom' if rand(3)==0
+end
+def explode
+  begin
+    boom
+  rescue ArgumentError => e
+    puts e
+  end
+  "hello world"
+end
+def defuse
+  begin
+    puts explode
+  rescue RuntimeError => e
+    puts e.class
+    puts e.message
+  end
+end
+```
+
+## 10.枚举和比较模块
+
+枚举和比较模块(Enumerable and Comparable)是ruby中非常重要的模块，完美展示了模块作为mixin的重要作用，例如Array和Hash就引入了这两个模块。
+
+### Enumerable和Comparable常用方法
+
+```ruby
+#Enumerable模块中常用的方法
+#search and filter
+:all?
+:any?
+:find
+:drop    #删除array中的元素
+:find_all
+:find_index
+:include?
+:none?   #和:all?相反
+:one?    #和:any?类似
+:reject
+:select
+#grouping
+:chunk
+:group_by #将元素分组作为一个hash返回
+:partition
+#iterate
+:cycle
+:each
+:each_slice
+:each_with_index
+:reverse_each
+#iterate and create new collection
+:each_with_object  #遍历array并对object操作后生成新array
+:map
+:flat_map  #可以将多维数组的元素遍历出来，处理后生成新array
+:inject
+:sort
+:zip
+#stats
+:count
+:max
+:max_by
+:min
+:min_by
+:minmax
+:minmax_by
+#efficiency
+:lazy  #arry非常大的时候可以用来减小内存占用
+
+#Comparable模块方法（较少，看ruby官方手册）
+:<
+:<=
+:==
+:between?
+```
+
+### 自定义Class引入Comparable
+
+```ruby
+class Person
+  attr_reader :name
+  include Comparable   #1.首先include Comparable模块
+    
+  def intialize(name)
+    @name = name
+  end
+  
+  def <=> other     #2.定义一个比较的方式，这里比较name
+    self.name <=> other.name
+  end
+end
+p1 = Person.new 'Andrea'
+p2 = Person.new 'Fabio'
+p3 = Person.new 'Luigi'
+p1<p2
+=> true
+p2.between?(p1,p3)
+=> true
+```
+
+### 自定义Class引入Enumerable
+
+```ruby
+class People
+  attr_reader :people
+  include Enumerable   #1.首先引用Enumerable模块
+  def initialize(people)
+    @people = people
+  end
+  def each      #2.然后重写each的遍历方式，这样所有Enumerable的方法都可以使用了
+    raise 'please provide a block!' unless block_given?
+    people.each do |person|
+      yield person
+    end
+  end
+end
+p1 = People.new ['a','b','c']
+p1.each { |person| p person}
+'a'
+'b'
+'c'
+```
+
+## 11.正则表达式(Regexp)
+
+### 定义Regexp
+
+```ruby
+#3种方式定义
+1. /ruby/
+2. %r{ruby}
+3. Regexp.new
+```
+
