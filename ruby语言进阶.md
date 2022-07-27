@@ -1499,3 +1499,260 @@ p1.each { |person| p person}
 3. Regexp.new
 ```
 
+### 正则基本使用
+
+```ruby
+# Basics
+text =~ /Ruby/   #匹配一个特定字符串
+text =~ /^Ruby/  #匹配开头字符串
+text =~ /Ruby$/  #匹配结尾字符串
+text =~ /^Ruby$/ #同时匹配开头结尾
+text =~ /^s/     #匹配空字符串
+
+# metacharacters
+text =~ /r.*y/
+text =~ /r.?y/
+text =~ /r.*?y/
+text =~ /r\w*y/
+text =~ /\W+/
+
+# options
+text =~ /Ruby/i  #匹配大小写
+text =~ /r.*y/im
+
+#输出匹配字符串
+"abcd".match(/a.*c/)  #match会输出MatchData类型的结果
+=> #<MatchData "abc">
+"abcd".match(/a.*c/)[0] #加索引可以输出匹配到的第几个字符串
+=> "abc"
+"abcd".match(/a.*c/)[1]
+=> nil
+
+#组()
+"abcd".match(/a(.*)c/) #会把组(.*)匹配到的字符串"b"也输出
+=> #<MatchData "abc" 1:"b">
+"abcd".match(/a(.*)c/)[1]
+=> "b"
+
+#用法
+1.判断是否匹配
+"abcd" =~ /a.*c/  #匹配则输出索引
+=> 0
+"abcd" =~ /asoiej/ #不匹配输出nil
+=> nil
+2.输出所有匹配
+'abcd aabc asaaabd'.scan(/a*b/)
+=> ["ab", "aab", "aaab"]
+3.输出匹配
+a = "hello there"
+a[/[aeiou](.)\1/]  #\1表示重复上一个匹配语句，这里相当于(.)
+=> "ell"
+[/[aeiou](.)(.)/]
+=> "ell"
+4.字符串分割
+'(200)959-5592'.split(/[\(\)-]/)
+=> ["", "200", "959", "5592"]
+'(200)959-5592'.split(/[\(\)-]/).reject {|e| e.empty?}     #去掉分割出的空字符串
+=> ["200", "959", "5592"]
+5.字符串替换
+'(200)959-5592'.gsub!(/[\(\)-]/, 'aa')
+=> "aa200aa959aa5592"
+```
+
+### 12.日期和时间
+
+### 基本定义和使用
+
+```ruby
+#创建date和date time
+date = Date.today
+dt = DateTime.now
+time = Time.now
+#获取date或time的components
+date.year
+date.month
+date.wday #获取是周几
+date.yday
+date.perv_day
+date.next_day
+
+time.year
+time.month
+time.hour
+time.min
+time.sec
+#date操作
+Date.today + 1
+DateTime.now + 1
+Time.now + 10
+Date.today > Date.prev_day
+```
+
+### 高级使用
+
+一般来说ruby中，Time是core class，所以不一定需要require，但是Date和DateTime需要require才能用。
+
+```ruby
+require 'date'
+require 'time'  #只要require 'time'，那么Date和DateTime同时也被require了，所以只需要require 'time'就可以了，而且还会使Time的类方法多一些
+Time.singleton_class.instance_methods
+Date.singleton_class.instance_methods
+```
+
+使用string生成一个date对象
+
+```ruby
+Date.parse('03/11/2022')
+DateTime.parse('03/11/2022')
+Date.strptime('03/11/2022', '%m/%d/%Y')  #以指定格式生成date对象（常用）
+Date.strptime('2022-03-11', '%y-%m-%d')
+```
+
+将时间对象转换成字符串
+
+```ruby
+Time.now.to_s
+Date.today.to_s
+Time.now.strftime('%m%d%y') #常用
+=> "03/22/15"
+```
+
+### 时区
+
+```ruby
+Time.now  #本地时区时间
+DateTime.now  
+DateTime.now.new_offset(Rational(8, 24))  #东八区时间，Rational是生成一个有理数8/24，new_offset是给一个偏移
+DateTime.now.new_offset(Rational(-7, 24)) #西七区时间
+```
+
+改变时区
+
+```ruby
+ENV['TZ'] = 'Asia/Shanghai'  #改变ruby环境变量
+Time.now
+
+class Time
+  def convert_zone(to_zone)
+    original_zone = ENV["TZ"]
+    utc_time = dup.gmtime
+    ENV["TZ"] = to_zone
+    to_zone_time = utc_time.localtime
+    ENV["TZ"] = original_zone
+    to_zone_time
+  end
+end
+t = Time.new
+t.convert_zone("Asia/Shanghai")
+```
+
+遍历时间
+
+```ruby
+start_date = Date.new(2015, 3, 2)
+end_date = Date.new(2015, 3, 9)
+(start_date..end_date).each { |x| puts x}  #1.range的方式遍历
+start_date.upto(end_date) { |x| puts x} #2.upto的方式
+start_date.step(end_date, 2) { |x| puts x} #3.step方式，每2天输出一次
+```
+
+##  12.文件处理
+
+```ruby
+File < IO < Object  #File类的继承关系
+```
+
+### filename string
+
+```ruby
+#文件名字符串操作
+full_name = "/root/projects/ruby-test/point.rb"
+File.basename(full_name)   #获取文件名
+File.basename(full_name,'.rb') #获取去掉后缀的文件名
+File.dirname(full_name)  #获取文件目录路径
+File.extname(full_name)  #获取文件后缀
+File.join('root','projects','ruby-test') #拼接路径
+File.expand_path("~/point") #填充相对路径
+=> "/root/point"
+```
+
+### 文件路径操作
+
+``` ruby
+Dir.pwd   #查看当前路径
+Dir.chdir('../') #切换当前路径
+Dir.entries('.') #列出所有当前路径下的文件
+Dir.entries('*.rb') #列出当前路径下所有.rb文件
+
+File.exist?(file_name) #文件或目录是否存在
+File.directory?(directory_name) #目录是否存在
+File.file?(file_name)  #文件是否存在
+File.size(file_name)  #文件大小
+```
+
+### 文件遍历(iterating files)
+
+```ruby
+Dir['/root/projects/ruby-test/*.rb'] #列出所有ruby-test目录下的.rb文件
+Dir.glob('/root/projects/ruby-test/*.rb') {|f| load f} #遍历所有.rb文件，在block中操作
+```
+
+### 文件操作
+
+```ruby
+Dir.mkdir('tmp')  #创建新目录
+Dir.rmdir('tmp')  #删除目录
+File.rename('test', 'new_test') #修改文件名
+File.delete('file_name') #删除文件
+File.symlink('test','old_test') #给文件创建链接
+```
+
+### 文件读写
+
+打开文件方式：
+
+```ruby
+#第一种打开文件方式，需要手动关闭文件
+begin
+  f = File.open('test.rb')  #打开文件
+rescue
+  puts "This file doesn't exist!"
+ensure
+  f.close if f   #处理完后需要手动关闭文件
+end
+#第二种打开文件方式，会自动关闭文件
+File.open('file_name', 'r') { do_something } #只读
+File.open('file_name', 'w') { do_something } #只写
+# r, r+, w, w+, a: 有这几种文件读写权限打开方式
+```
+
+读取文件内容：
+
+```ruby
+#读取文件所有内容
+File.open('file_util.rb', 'r') do |f| 
+  while line = f.gets #使用循环读取每行字符串，f.getc读取每个字符，这种方式读取文件不常用
+    puts line
+  end
+end
+
+File.open('test', 'r') do |f|
+  lines = f.readlines   #可以使用readlines将文件所有行读取为一个数组，每行为数组一个元素
+end
+
+File.readlines('file_util.rb') #比较常用的读取所有行，输出为一个数组，并且会自动关闭文件
+
+File.read('file_util.rb') #将文件内容输出为一个string
+```
+
+写内容到文件：
+
+```ruby
+File.open('test', 'w') do |f|  #先以只写方式打开文件
+  f << "hello"    #写内容进文件,append方式写完不换行
+  f << 'world'
+  f.puts 'hello'  #写入内容后换行
+  f.puts 'world!'
+end
+```
+
